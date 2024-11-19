@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
+import bcrypt from 'bcrypt';
 import { model, Schema } from 'mongoose';
+import config from '../config';
 import {
-  StudentMethods,
   StudentModel,
   TGuardian,
   TLocalGuardian,
   TStudent,
   TUserName,
 } from './student/student.interface';
-
 const userNameSchema = new Schema<TUserName>({
   firstName: {
     type: String,
@@ -71,7 +72,7 @@ const localGuardianSchema = new Schema<TLocalGuardian>({
 });
 
 // created schema
-const studentSchema = new Schema<TStudent, StudentModel, StudentMethods>({
+const studentSchema = new Schema<TStudent, StudentModel>({
   id: {
     type: String,
     required: true,
@@ -93,6 +94,11 @@ const studentSchema = new Schema<TStudent, StudentModel, StudentMethods>({
     type: String,
     required: true,
     unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: [8, 'Password must be at least 8 characters long'],
   },
   contactNumber: {
     type: String,
@@ -131,12 +137,48 @@ const studentSchema = new Schema<TStudent, StudentModel, StudentMethods>({
     default: 'active',
     required: true,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-studentSchema.methods.isStudentExist = async function (id: string) {
-  const existingUser = await Student.findOne({ id });
-  return existingUser;
-};
+// ---------------------------------------------------------------
+// pre save middleware /hooks
+studentSchema.pre('save', async function (next) {
+  const user = this;
+  user.password = await bcrypt.hash(
+    user.password,
+    Number(config.bcrypt_salt_rounds),
+  );
+  next();
+});
+//---------------------------------------------------------------
+// post middleware /hooks
+studentSchema.post('save', function (doc, next) {
+  doc.password = '';
+  next();
+});
 
+// ---------------------------------------------------------------
+
+// query middleware /hooks
+studentSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+//---------------------------------------------------------
+// creating custom statics methods
+studentSchema.statics.isStudentExist = async function (id: string) {
+  const existingStudent = await Student.findOne({ id });
+  return existingStudent;
+};
+// below we have created  the mongoose instance methods
+
+// studentSchema.methods.isStudentExist = async function (id: string) {
+//   const existingStudent = await Student.findOne({ id });
+//   return existingStudent;
+// };
 // creating a model
 export const Student = model<TStudent, StudentModel>('Student', studentSchema);

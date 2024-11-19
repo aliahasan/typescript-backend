@@ -33,10 +33,10 @@ export const getAllStudents = async (req: Request, res: Response) => {
       message: 'Students are retrieved successfully',
       data: result,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: 'something went wrong',
+      message: error.message || 'something went wrong',
       error: error,
     });
   }
@@ -51,10 +51,28 @@ export const getSingleStudentById = async (req: Request, res: Response) => {
       message: 'Student is retrieved successfully',
       data: result,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: 'something went wrong',
+      message: error.message || 'something went wrong',
+      error: error,
+    });
+  }
+};
+
+export const deleteStudent = async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
+    const result = await StudentService.deleteStudentFromDB(studentId);
+    res.status(200).json({
+      success: true,
+      message: 'Student deleted successfully',
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'something went wrong',
       error: error,
     });
   }

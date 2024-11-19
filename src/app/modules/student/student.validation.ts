@@ -40,6 +40,9 @@ export const studentSchema = z.object({
   }),
   dateOfBirth: z.string().optional(),
   email: z.string().email({ message: 'Invalid email address' }),
+  password: z
+    .string()
+    .min(8, { message: 'Password must be at least 8 characters long' }),
   contactNumber: z.string(),
   emergencyContactNo: z.string(),
   bloodGroup: z
@@ -51,4 +54,5 @@ export const studentSchema = z.object({
   localGuardians: localGuardianSchema,
   profileImage: z.string(),
   iaActive: z.enum(['active', 'blocked']).default('active'),
+  isDeleted: z.boolean(),
 });

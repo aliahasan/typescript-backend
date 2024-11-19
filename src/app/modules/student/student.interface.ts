@@ -26,6 +26,7 @@ export type TStudent = {
   name: TUserName;
   gender: 'male' | 'female' | 'other';
   email: string;
+  password: string;
   dateOfBirth?: string;
   contactNumber: string;
   emergencyContactNo?: string;
@@ -36,14 +37,20 @@ export type TStudent = {
   localGuardians: TLocalGuardian;
   profileImage: string;
   iaActive: 'active' | 'blocked';
+  isDeleted: boolean;
 };
 
-export type StudentMethods = {
+// export type StudentMethods = {
+//   isStudentExist(id: string): Promise<TStudent | null>;
+// };
+
+// export type StudentModel = Model<
+//   TStudent,
+//   //   {},
+//   Record<string, unknown>,
+//   StudentMethods
+// >;
+
+export interface StudentModel extends Model<TStudent> {
   isStudentExist(id: string): Promise<TStudent | null>;
-};
-
-export type StudentModel = Model<
-  TStudent,
-  Record<string, never>,
-  StudentMethods
->;
+}
