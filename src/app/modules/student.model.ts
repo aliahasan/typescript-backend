@@ -1,26 +1,30 @@
 import { model, Schema } from 'mongoose';
 import {
-  Guardian,
-  LocalGuardian,
-  Student,
-  UserName,
+  StudentMethods,
+  StudentModel,
+  TGuardian,
+  TLocalGuardian,
+  TStudent,
+  TUserName,
 } from './student/student.interface';
 
-const userNameSchema = new Schema<UserName>({
+const userNameSchema = new Schema<TUserName>({
   firstName: {
     type: String,
-    required: true,
+    required: [true, 'firstName is required'],
+    trim: true,
+    minlength: [3, 'First name should be at least 3 characters long'],
   },
   middleName: {
     type: String,
   },
   lastName: {
     type: String,
-    required: true,
+    required: [true, 'last name is required'],
   },
 });
 
-const guardianSchema = new Schema<Guardian>({
+const guardianSchema = new Schema<TGuardian>({
   fatherName: {
     type: String,
     required: true,
@@ -47,7 +51,7 @@ const guardianSchema = new Schema<Guardian>({
   },
 });
 
-const localGuardianSchema = new Schema<LocalGuardian>({
+const localGuardianSchema = new Schema<TLocalGuardian>({
   name: {
     type: String,
     required: true,
@@ -67,16 +71,28 @@ const localGuardianSchema = new Schema<LocalGuardian>({
 });
 
 // created schema
-const studentSchema = new Schema<Student>({
+const studentSchema = new Schema<TStudent, StudentModel, StudentMethods>({
   id: {
     type: String,
+    required: true,
+    unique: true,
   },
-  name: userNameSchema,
-  gender: ['male', 'female'],
+  name: {
+    type: userNameSchema,
+    required: true,
+  },
+  gender: {
+    type: String,
+    enum: {
+      values: ['male', 'female', 'other'],
+      message: '{VALUE} is not a valid gender',
+    },
+  },
   dateOfBirth: String,
   email: {
     type: String,
     required: true,
+    unique: true,
   },
   contactNumber: {
     type: String,
@@ -86,7 +102,10 @@ const studentSchema = new Schema<Student>({
     type: String,
     required: true,
   },
-  bloodGroup: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+  bloodGroup: {
+    type: String,
+    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+  },
   presentAddress: {
     type: String,
     required: true,
@@ -95,13 +114,29 @@ const studentSchema = new Schema<Student>({
     type: String,
     required: true,
   },
-  guardians: guardianSchema,
-  localGuardians: localGuardianSchema,
+  guardians: {
+    type: guardianSchema,
+    required: true,
+  },
+  localGuardians: {
+    type: localGuardianSchema,
+    required: true,
+  },
   profileImage: {
     type: String,
   },
-  iaActive: ['active', 'blocked'],
+  iaActive: {
+    type: String,
+    enum: ['active', 'blocked'],
+    default: 'active',
+    required: true,
+  },
 });
 
+studentSchema.methods.isStudentExist = async function (id: string) {
+  const existingUser = await Student.findOne({ id });
+  return existingUser;
+};
+
 // creating a model
-export const StudentModel = model<Student>('Student', studentSchema);
+export const Student = model<TStudent, StudentModel>('Student', studentSchema);
