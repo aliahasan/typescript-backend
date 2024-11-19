@@ -72,75 +72,88 @@ const localGuardianSchema = new Schema<TLocalGuardian>({
 });
 
 // created schema
-const studentSchema = new Schema<TStudent, StudentModel>({
-  id: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  name: {
-    type: userNameSchema,
-    required: true,
-  },
-  gender: {
-    type: String,
-    enum: {
-      values: ['male', 'female', 'other'],
-      message: '{VALUE} is not a valid gender',
+const studentSchema = new Schema<TStudent, StudentModel>(
+  {
+    id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    name: {
+      type: userNameSchema,
+      required: true,
+    },
+    gender: {
+      type: String,
+      enum: {
+        values: ['male', 'female', 'other'],
+        message: '{VALUE} is not a valid gender',
+      },
+    },
+    dateOfBirth: String,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: [8, 'Password must be at least 8 characters long'],
+    },
+    contactNumber: {
+      type: String,
+      required: true,
+    },
+    emergencyContactNo: {
+      type: String,
+      required: true,
+    },
+    bloodGroup: {
+      type: String,
+      enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+    },
+    presentAddress: {
+      type: String,
+      required: true,
+    },
+    permanentAddress: {
+      type: String,
+      required: true,
+    },
+    guardians: {
+      type: guardianSchema,
+      required: true,
+    },
+    localGuardians: {
+      type: localGuardianSchema,
+      required: true,
+    },
+    profileImage: {
+      type: String,
+    },
+    iaActive: {
+      type: String,
+      enum: ['active', 'blocked'],
+      default: 'active',
+      required: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
-  dateOfBirth: String,
-  email: {
-    type: String,
-    required: true,
-    unique: true,
+  {
+    toJSON: {
+      virtuals: true,
+    },
   },
-  password: {
-    type: String,
-    required: true,
-    minlength: [8, 'Password must be at least 8 characters long'],
-  },
-  contactNumber: {
-    type: String,
-    required: true,
-  },
-  emergencyContactNo: {
-    type: String,
-    required: true,
-  },
-  bloodGroup: {
-    type: String,
-    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
-  },
-  presentAddress: {
-    type: String,
-    required: true,
-  },
-  permanentAddress: {
-    type: String,
-    required: true,
-  },
-  guardians: {
-    type: guardianSchema,
-    required: true,
-  },
-  localGuardians: {
-    type: localGuardianSchema,
-    required: true,
-  },
-  profileImage: {
-    type: String,
-  },
-  iaActive: {
-    type: String,
-    enum: ['active', 'blocked'],
-    default: 'active',
-    required: true,
-  },
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
+);
+
+//-----------------------------------------------------------
+// apply virtuals
+studentSchema.virtual('fullName').get(function () {
+  return `${this.name.firstName} ${this.name?.middleName} ${this.name.lastName}`;
 });
 
 // ---------------------------------------------------------------
@@ -167,7 +180,15 @@ studentSchema.pre('find', function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
+studentSchema.pre('findOne', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
 
+studentSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  next();
+});
 //---------------------------------------------------------
 // creating custom statics methods
 studentSchema.statics.isStudentExist = async function (id: string) {
