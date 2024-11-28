@@ -1,14 +1,11 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
-import bcrypt from 'bcrypt';
 import { model, Schema } from 'mongoose';
-import config from '../config';
 import {
   StudentModel,
   TGuardian,
   TLocalGuardian,
   TStudent,
   TUserName,
-} from './student/student.interface';
+} from './student.interface';
 const userNameSchema = new Schema<TUserName>({
   firstName: {
     type: String,
@@ -79,6 +76,12 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       required: true,
       unique: true,
     },
+    user: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'User ID is required'],
+      unique: true,
+      ref: 'User',
+    },
     name: {
       type: userNameSchema,
       required: true,
@@ -89,6 +92,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
         values: ['male', 'female', 'other'],
         message: '{VALUE} is not a valid gender',
       },
+      required: true,
     },
     dateOfBirth: String,
     email: {
@@ -96,11 +100,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       required: true,
       unique: true,
     },
-    password: {
-      type: String,
-      required: true,
-      minlength: [8, 'Password must be at least 8 characters long'],
-    },
+
     contactNumber: {
       type: String,
       required: true,
@@ -132,12 +132,6 @@ const studentSchema = new Schema<TStudent, StudentModel>(
     profileImage: {
       type: String,
     },
-    iaActive: {
-      type: String,
-      enum: ['active', 'blocked'],
-      default: 'active',
-      required: true,
-    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -158,20 +152,20 @@ studentSchema.virtual('fullName').get(function () {
 
 // ---------------------------------------------------------------
 // pre save middleware /hooks
-studentSchema.pre('save', async function (next) {
-  const user = this;
-  user.password = await bcrypt.hash(
-    user.password,
-    Number(config.bcrypt_salt_rounds),
-  );
-  next();
-});
-//---------------------------------------------------------------
-// post middleware /hooks
-studentSchema.post('save', function (doc, next) {
-  doc.password = '';
-  next();
-});
+// studentSchema.pre('save', async function (next) {
+//   const user = this;
+//   user.password = await bcrypt.hash(
+//     user.password,
+//     Number(config.bcrypt_salt_rounds),
+//   );
+//   next();
+// });
+// //---------------------------------------------------------------
+// // post middleware /hooks
+// studentSchema.post('save', function (doc, next) {
+//   doc.password = '';
+//   next();
+// });
 
 // ---------------------------------------------------------------
 
