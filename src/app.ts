@@ -2,6 +2,7 @@ import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import globalErrorHandler from './app/middleware/errorHandler';
 import handleNotFoundRoute from './app/middleware/notFound';
+import router from './app/routes';
 
 const app: Application = express();
 
@@ -9,10 +10,10 @@ const app: Application = express();
 app.use(express.json());
 app.use(cors());
 
+app.use('/api/v1', router);
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Welcome to the University API' });
 });
-// Application routes
 
 // not found route
 app.use(handleNotFoundRoute);

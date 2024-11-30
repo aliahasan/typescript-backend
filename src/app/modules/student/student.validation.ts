@@ -32,27 +32,31 @@ const localGuardianSchema = z.object({
 });
 
 // Student Schema
-export const studentSchema = z.object({
-  id: z.string({ message: 'Student id is required' }),
-  name: userNameSchema,
-  gender: z.enum(['male', 'female', 'other'], {
-    message: 'Gender must be male, female, or other',
+const createStudentValidationSchema = z.object({
+  body: z.object({
+    password: z
+      .string()
+      .min(8, { message: 'Password must be at least 8 characters long' }),
+    student: z.object({
+      name: userNameSchema,
+      email: z.string().email({ message: 'Invalid email address' }),
+      dateOfBirth: z.string().optional(),
+      gender: z.enum(['male', 'female', 'other'], {
+        message: 'Gender must be male, female, or other',
+      }),
+      contactNumber: z.string(),
+      emergencyContactNo: z.string(),
+      bloodGroup: z
+        .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
+        .optional(),
+      presentAddress: z.string(),
+      permanentAddress: z.string(),
+      guardians: guardianSchema,
+      localGuardians: localGuardianSchema,
+      profileImage: z.string(),
+    }),
   }),
-  dateOfBirth: z.string().optional(),
-  email: z.string().email({ message: 'Invalid email address' }),
-  password: z
-    .string()
-    .min(8, { message: 'Password must be at least 8 characters long' }),
-  contactNumber: z.string(),
-  emergencyContactNo: z.string(),
-  bloodGroup: z
-    .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
-    .optional(),
-  presentAddress: z.string(),
-  permanentAddress: z.string(),
-  guardians: guardianSchema,
-  localGuardians: localGuardianSchema,
-  profileImage: z.string(),
-  iaActive: z.enum(['active', 'blocked']).default('active'),
-  isDeleted: z.boolean(),
 });
+export const studentValidations = {
+  createStudentValidationSchema,
+};
