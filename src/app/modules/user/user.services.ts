@@ -23,7 +23,7 @@ const createStudentToDB = async (password: string, payload: TStudent) => {
     }
 
     // Generate student ID using the found academic semester
-    userData.id = generatedStudentId(admissionSemester);
+    userData.id = await generatedStudentId(admissionSemester);
 
     const newUser = await User.create(userData);
 
