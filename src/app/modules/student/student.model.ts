@@ -197,9 +197,10 @@ studentSchema.pre('aggregate', function (next) {
 //---------------------------------------------------------
 // creating custom statics methods
 studentSchema.statics.isStudentExist = async function (id: string) {
-  const existingStudent = await Student.findOne({ id });
+  const existingStudent = await this.findOne({ id });
   return existingStudent;
 };
+
 // below we have created  the mongoose instance methods
 
 // studentSchema.methods.isStudentExist = async function (id: string) {

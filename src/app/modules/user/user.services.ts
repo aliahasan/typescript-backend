@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status-codes';
+import mongoose from 'mongoose';
 import config from '../../config';
 import AppError from '../../errors/AppError';
 import { AcademicSemester } from '../academicSemester/academicSemester.model';
@@ -10,38 +11,50 @@ import User from './user.model';
 import { generatedStudentId } from './user.utils';
 
 const createStudentToDB = async (password: string, payload: TStudent) => {
+  const session = await mongoose.startSession();
+
   try {
-    const userData: Partial<TUser> = {};
-    userData.password = password || (config.default_password as string);
-    userData.role = 'student';
+    session.startTransaction();
+
+    // Set default password if not provided
+    const userData: Partial<TUser> = {
+      password: password || config.default_password,
+      role: 'student',
+    };
 
     // Find academic semester info
     const admissionSemester = await AcademicSemester.findById(
       payload.admissionSemester,
     );
-
     if (!admissionSemester) {
       throw new AppError(httpStatus.NOT_FOUND, 'Admission semester not found.');
     }
-    // Generate student ID using the found academic semester
+
+    // Generate student ID
     userData.id = await generatedStudentId(admissionSemester);
 
-    const newUser = await User.create(userData);
+    // Create user
+    const [newUser] = await User.create([userData], { session });
+    if (!newUser) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create user');
+    }
+    // Associate student data with user
+    payload.id = newUser.id;
+    payload.user = newUser._id;
 
-    if (Object.keys(newUser).length) {
-      payload.id = newUser.id;
-      payload.user = newUser._id;
-
-      const newStudent = await Student.create(payload);
-      return newStudent;
+    // Create student
+    const [newStudent] = await Student.create([payload], { session });
+    if (!newStudent) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create student');
     }
 
-    throw new AppError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      'Failed to create user.',
-    );
+    await session.commitTransaction();
+    return newStudent;
   } catch (error: any) {
-    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
   }
 };
 
