@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import httpStatus from 'http-status-codes';
 import config from '../../config';
+import AppError from '../../errors/AppError';
 import { AcademicSemester } from '../academicSemester/academicSemester.model';
 import { TStudent } from '../student/student.interface';
 import { Student } from '../student/student.model';
@@ -19,9 +21,8 @@ const createStudentToDB = async (password: string, payload: TStudent) => {
     );
 
     if (!admissionSemester) {
-      throw new Error('Admission semester not found.');
+      throw new AppError(httpStatus.NOT_FOUND, 'Admission semester not found.');
     }
-
     // Generate student ID using the found academic semester
     userData.id = await generatedStudentId(admissionSemester);
 
@@ -35,9 +36,12 @@ const createStudentToDB = async (password: string, payload: TStudent) => {
       return newStudent;
     }
 
-    throw new Error('Failed to create user.');
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      'Failed to create user.',
+    );
   } catch (error: any) {
-    throw new Error(error.message);
+    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
   }
 };
 
