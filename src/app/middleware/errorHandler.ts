@@ -3,6 +3,7 @@
 import { ErrorRequestHandler, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import config from '../config';
+import AppError from '../errors/AppError';
 import handleCastError from '../errors/castError';
 import handleDuplicateError from '../errors/duplicateError';
 import handleMongooseValidationError from '../errors/mongoose.error';
@@ -47,6 +48,23 @@ const globalErrorHandler: ErrorRequestHandler = (
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;
     errorSources = simplifiedError?.errorSources;
+  } else if (err instanceof AppError) {
+    statusCode = err?.statusCode;
+    message = err?.message;
+    errorSources = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ];
+  } else if (err instanceof Error) {
+    message = err.message;
+    errorSources = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ];
   }
 
   res.status(statusCode).json({
