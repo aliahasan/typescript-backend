@@ -3,8 +3,10 @@
 import { ErrorRequestHandler, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import config from '../config';
-import { handleMongooseValidationError } from '../errors/mongoose.error';
-import { handleZodError } from '../errors/zod.error';
+import handleCastError from '../errors/castError';
+import handleDuplicateError from '../errors/duplicateError';
+import handleMongooseValidationError from '../errors/mongoose.error';
+import handleZodError from '../errors/zod.error';
 import { TErrorSources } from '../interface/error';
 
 // Global error handler middleware
@@ -21,7 +23,7 @@ const globalErrorHandler: ErrorRequestHandler = (
   let errorSources: TErrorSources = [
     {
       path: '',
-      message: 'Internal Server Error',
+      message: 'Something went wrong',
     },
   ];
 
@@ -32,6 +34,16 @@ const globalErrorHandler: ErrorRequestHandler = (
     errorSources = simplifiedError?.errorSources;
   } else if (err?.name === 'ValidationError') {
     const simplifiedError = handleMongooseValidationError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  } else if (err?.name === 'CastError') {
+    const simplifiedError = handleCastError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  } else if (err?.code === 11000) {
+    const simplifiedError = handleDuplicateError(err);
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;
     errorSources = simplifiedError?.errorSources;
