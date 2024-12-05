@@ -1,22 +1,47 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
+import { ErrorRequestHandler, NextFunction } from 'express';
+import { ZodError } from 'zod';
+import config from '../config';
+import { handleMongooseValidationError } from '../errors/mongoose.error';
+import { handleZodError } from '../errors/zod.error';
+import { TErrorSources } from '../interface/error';
 
 // Global error handler middleware
 const globalErrorHandler: ErrorRequestHandler = (
-  err: any,
-  req: Request,
-  res: Response,
+  err,
+  req,
+  res,
   next: NextFunction,
 ) => {
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  //setting default values of error handler
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Internal Server Error';
+
+  let errorSources: TErrorSources = [
+    {
+      path: '',
+      message: 'Internal Server Error',
+    },
+  ];
+
+  if (err instanceof ZodError) {
+    const simplifiedError = handleZodError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  } else if (err?.name === 'ValidationError') {
+    const simplifiedError = handleMongooseValidationError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSources = simplifiedError?.errorSources;
+  }
 
   res.status(statusCode).json({
     success: false,
     message,
-    error: process.env.NODE_ENV === 'development' ? err : {}, // Hide error details in production
+    errorSources,
+    stack: config.NODE_ENV === 'development' ? err.stack : null,
   });
 };
 
