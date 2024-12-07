@@ -11,14 +11,15 @@ class QueryBuilder<T> {
 
   search(searchableFields: string[]) {
     const searchTerm = this?.query?.searchTerm;
+    const searchValue = searchableFields.map(
+      (value) =>
+        ({
+          [value]: { $regex: searchTerm, $options: 'i' },
+        }) as FilterQuery<T>,
+    );
     if (searchTerm) {
       this.queryModel = this.queryModel.find({
-        $or: searchableFields.map(
-          (field) =>
-            ({
-              [field]: { $regex: searchTerm, $options: 'i' },
-            }) as FilterQuery<T>,
-        ),
+        $or: searchValue,
       });
     }
     return this;
@@ -34,8 +35,8 @@ class QueryBuilder<T> {
 
   sort() {
     const sort =
-      (this?.query?.sort as string)?.split(',')?.join(' ') || '-createdAt';
-    this.queryModel = this.queryModel.sort(sort as string);
+      (this.query?.sort as string)?.split(',')?.join(' ') || '-createdAt';
+    this.queryModel = this.queryModel.sort(sort);
     return this;
   }
 
