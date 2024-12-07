@@ -58,7 +58,17 @@ import { studentSearchableFields } from './students.constant';
 // };
 
 const getAllStudents = async (query: Record<string, unknown>) => {
-  const studentsQuery = new QueryBuilder(Student.find(), query)
+  const studentsQuery = new QueryBuilder(
+    Student.find()
+      .populate('admissionSemester')
+      .populate({
+        path: 'academicDepartment',
+        populate: {
+          path: 'academicFaculty',
+        },
+      }),
+    query,
+  )
     .search(studentSearchableFields)
     .filter()
     .sort()
