@@ -1,20 +1,70 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status-codes';
 import mongoose from 'mongoose';
+import QueryBuilder from '../../Builders/QueryBuilder';
 import AppError from '../../errors/AppError';
 import User from '../user/user.model';
 import { TStudent } from './student.interface';
 import { Student } from './student.model';
+import { studentSearchableFields } from './students.constant';
 
-const getAllStudents = async () => {
-  const result = await Student.find()
-    .populate('admissionSemester')
-    .populate({
-      path: 'academicDepartment',
-      populate: {
-        path: 'academicFaculty',
-      },
-    });
+// const getAllStudents = async (query: Record<string, unknown>) => {
+//   // Extracting specific query fields
+//   const { searchTerm, sort, page, limit, fields, ...filters } = query;
+
+//   // Building search query for partial matches
+//   const studentSearchableFields = ['email', 'name.firstName', 'presentAddress'];
+//   const searchFilter = searchTerm
+//     ? {
+//         $or: studentSearchableFields.map((field) => ({
+//           [field]: { $regex: searchTerm, $options: 'i' },
+//         })),
+//       }
+//     : {};
+
+//   // Merging filters with search query
+//   const queryFilters = {
+//     $and: [filters, searchFilter],
+//   };
+
+//   // Sorting
+//   const sortBy = sort ? (sort as string) : '-createdAt';
+
+//   // Pagination defaults
+//   const pageNumber = Number(page) || 1;
+//   const limitNumber = Number(limit) || 10;
+//   const skip = (pageNumber - 1) * limitNumber;
+
+//   // Field selection----fields limiting
+//   const selectedFields = fields
+//     ? (fields as string).split(',').join(' ')
+//     : '-__v';
+
+//   // Query execution
+//   const students = await Student.find(queryFilters)
+//     .populate('admissionSemester')
+//     .populate({
+//       path: 'academicDepartment',
+//       populate: {
+//         path: 'academicFaculty',
+//       },
+//     })
+//     .sort(sortBy)
+//     .skip(skip)
+//     .limit(limitNumber)
+//     .select(selectedFields);
+
+//   return students;
+// };
+
+const getAllStudents = async (query: Record<string, unknown>) => {
+  const studentsQuery = new QueryBuilder(Student.find(), query)
+    .search(studentSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+  const result = await studentsQuery.queryModel;
   return result;
 };
 
