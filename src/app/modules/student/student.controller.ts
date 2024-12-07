@@ -1,13 +1,12 @@
-import StatusCodes from 'http-status-codes';
+import httpStatus from 'http-status-codes';
 import tryCatchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { StudentService } from './student.service';
 
 const getAllStudents = tryCatchAsync(async (req, res) => {
   const result = await StudentService.getAllStudents(req.query);
-
   sendResponse(res, {
-    statusCode: StatusCodes.OK,
+    statusCode: httpStatus.OK,
     success: true,
     message: 'Students retrieved successfully',
     data: result,
@@ -15,10 +14,10 @@ const getAllStudents = tryCatchAsync(async (req, res) => {
 });
 
 const getSingleStudentById = tryCatchAsync(async (req, res) => {
-  const { studentId } = req.params;
-  const result = await StudentService.getSingleStudent(studentId);
+  const { id } = req.params;
+  const result = await StudentService.getSingleStudent(id);
   sendResponse(res, {
-    statusCode: StatusCodes.OK,
+    statusCode: httpStatus.OK,
     success: true,
     message: 'Student retrieved successfully',
     data: result,
@@ -27,11 +26,11 @@ const getSingleStudentById = tryCatchAsync(async (req, res) => {
 
 //update student
 const updateStudent = tryCatchAsync(async (req, res) => {
-  const { studentId } = req.params;
+  const { id } = req.params;
   const { student } = req.body;
-  const result = await StudentService.updateStudentById(studentId, student);
+  const result = await StudentService.updateStudentById(id, student);
   sendResponse(res, {
-    statusCode: StatusCodes.OK,
+    statusCode: httpStatus.OK,
     success: true,
     message: 'Student updated successfully',
     data: result,
@@ -40,10 +39,10 @@ const updateStudent = tryCatchAsync(async (req, res) => {
 
 // delete student
 const deleteStudent = tryCatchAsync(async (req, res) => {
-  const { studentId } = req.params;
-  const result = await StudentService.deleteStudentFromDB(studentId);
+  const { id } = req.params;
+  const result = await StudentService.deleteStudentFromDB(id);
   sendResponse(res, {
-    statusCode: StatusCodes.OK,
+    statusCode: httpStatus.OK,
     success: true,
     message: 'Student deleted successfully',
     data: result,

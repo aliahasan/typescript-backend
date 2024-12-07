@@ -81,7 +81,7 @@ const getAllStudents = async (query: Record<string, unknown>) => {
 const getSingleStudent = async (id: string) => {
   //   const result = await Student.findOne({ id });
   //   const result = await Student.aggregate([{ $match: { id: id } }]);
-  const result = await Student.findOne({ id: id })
+  const result = await Student.findById(id)
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
@@ -113,11 +113,10 @@ const updateStudentById = async (id: string, payload: Partial<TStudent>) => {
       modifiedUpdatedData[`localGuardians.${key}`] = value;
     }
   }
-  const result = await Student.findOneAndUpdate(
-    { id: id },
-    modifiedUpdatedData,
-    { new: true, runValidators: true },
-  );
+  const result = await Student.findByIdAndUpdate(id, modifiedUpdatedData, {
+    new: true,
+    runValidators: true,
+  });
   return result;
 };
 
@@ -134,8 +133,8 @@ const deleteStudentFromDB = async (id: string) => {
     }
 
     // Mark user as deleted
-    const deleteUser = await User.findOneAndUpdate(
-      { id },
+    const deleteUser = await User.findByIdAndUpdate(
+      id,
       { isDeleted: true },
       { session },
     );
@@ -146,9 +145,11 @@ const deleteStudentFromDB = async (id: string) => {
       );
     }
 
+    const userId = deleteUser.id;
+
     // Mark student as deleted
-    const deleteStudent = await Student.findOneAndUpdate(
-      { id },
+    const deleteStudent = await Student.findByIdAndUpdate(
+      userId,
       { isDeleted: true },
       { session },
     );
