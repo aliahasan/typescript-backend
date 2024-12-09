@@ -50,20 +50,39 @@ export const findLastFacultyId = async () => {
   )
     .sort({ createdAt: -1 })
     .lean();
-  return lastFaculty?.id ? lastFaculty.id.substring(2) : undefined;
+  return lastFaculty?.id ? lastFaculty?.id : null;
 };
 
+// export const findLastFacultyId = async () => {
+//   const lastFaculty = await User.findOne(
+//     { role: 'faculty' }, // শুধুমাত্র 'faculty' রোল ফিল্টার করুন
+//     { id: 1, _id: 0 }, // শুধুমাত্র 'id' ফিল্ড নিন
+//   )
+//     .sort({ createdAt: -1 }) // সর্বশেষ ডেট অনুযায়ী সাজান
+//     .lean(); // শুধুমাত্র প্লেইন জাভাস্ক্রিপ্ট অবজেক্ট রিটার্ন করুন
+
+//   return lastFaculty?.id || null; // যদি আইডি না থাকে, তাহলে null রিটার্ন করুন
+// };
+
+// export const generateFacultyId = async () => {
+//   let currentId = (0).toString();
+//   const lastFacultyId = await findLastFacultyId();
+//   if (lastFacultyId) {
+//     currentId = lastFacultyId.substring(2);
+//   }
+//   let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
+//   incrementId = `F-${incrementId}`;
+//   return incrementId;
+// };
+
 export const generateFacultyId = async () => {
-  let currentId = (0).toString();
   const lastFacultyId = await findLastFacultyId();
+  let currentId = '0000';
   if (lastFacultyId) {
-    currentId = lastFacultyId.substring(2);
+    currentId = lastFacultyId.split('-')[1];
   }
-  let incrementId = Number(currentId + 1)
-    .toString()
-    .padStart(4, '0');
-  incrementId = `F-${incrementId}`;
-  return incrementId;
+  const incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
+  return `F-${incrementId}`;
 };
 
 // Admin ID
@@ -82,7 +101,7 @@ export const findLastAdminId = async () => {
     })
     .lean();
 
-  return lastAdmin?.id ? lastAdmin.id.substring(2) : undefined;
+  return lastAdmin?.id ? lastAdmin?.id : null;
 };
 
 export const generateAdminId = async () => {
