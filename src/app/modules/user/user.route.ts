@@ -1,6 +1,8 @@
 import express from 'express';
 import auth from '../../middleware/auth';
 import validateRequest from '../../middleware/validateRequest';
+import { parseFormdata } from '../../utils/fileUpload';
+import { upload } from '../../utils/sendImage';
 import { createAdminValidationSchema } from '../Admin/admin.validation';
 import { createFacultyValidationSchema } from '../Faculty/faculty.validation';
 import { studentValidations } from '../student/student.validation';
@@ -12,6 +14,8 @@ const router = express.Router();
 router.post(
   '/create-student',
   auth(USER_ROLE.admin),
+  upload.single('file'),
+  parseFormdata,
   validateRequest(studentValidations.createStudentValidationSchema),
   UserControllers.handleCreateStudent,
 );

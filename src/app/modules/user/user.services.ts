@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import httpStatus from 'http-status-codes';
+import StatusCodes from 'http-status-codes';
 import { JwtPayload } from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import config from '../../config';
 import AppError from '../../errors/AppError';
+import { sanitizeFileName, sendImageToCloudinary } from '../../utils/sendImage';
 import { Admin } from '../Admin/admin.model';
 import { TFaculty } from '../Faculty/faculty.interface';
 import { Faculty } from '../Faculty/faculty.model';
@@ -19,7 +20,11 @@ import {
   generateFacultyId,
 } from './user.utils';
 
-const createStudentToDB = async (password: string, payload: TStudent) => {
+const createStudentToDB = async (
+  password: string,
+  payload: TStudent,
+  file: any,
+) => {
   const session = await mongoose.startSession();
 
   try {
@@ -29,7 +34,7 @@ const createStudentToDB = async (password: string, payload: TStudent) => {
     const userData: Partial<TUser> = {
       password: password || (config.default_password as string),
       role: 'student',
-      email: payload?.email,
+      email: payload.email,
     };
 
     // Find academic semester info
@@ -37,32 +42,46 @@ const createStudentToDB = async (password: string, payload: TStudent) => {
       payload.admissionSemester,
     );
     if (!admissionSemester) {
-      throw new AppError(httpStatus.NOT_FOUND, 'Admission semester not found.');
+      throw new AppError(
+        StatusCodes.NOT_FOUND,
+        'Admission semester not found.',
+      );
     }
-
     // Generate student ID
     userData.id = await generatedStudentId(admissionSemester);
+
+    // Image upload to Cloudinary
+    if (!file?.path) {
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Profile image is required');
+    }
+    const imageName = `${userData.id}_${sanitizeFileName(payload.name.firstName)}`;
+    const profileImage = await sendImageToCloudinary(imageName, file.path);
 
     // Create user
     const [newUser] = await User.create([userData], { session });
     if (!newUser) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create user');
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create user');
     }
+
     // Associate student data with user
     payload.id = newUser.id;
     payload.user = newUser._id;
+    payload.profileImage = profileImage;
 
     // Create student
     const [newStudent] = await Student.create([payload], { session });
     if (!newStudent) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create student');
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create student');
     }
 
     await session.commitTransaction();
     return newStudent;
   } catch (error: any) {
     await session.abortTransaction();
-    throw error;
+    throw new AppError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message || 'An error occurred',
+    );
   } finally {
     await session.endSession();
   }
@@ -83,7 +102,7 @@ const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
     payload.academicDepartment,
   );
   if (!academicDepartment) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Academic department not found.');
+    throw new AppError(StatusCodes.NOT_FOUND, 'Academic department not found.');
   }
 
   //   start session
@@ -96,7 +115,7 @@ const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
     //create a user (transaction -1)
     const newUser = await User.create([userData], { session }); //return an array
     if (!newUser.length) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create user');
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create user');
     }
     payload.id = newUser[0].id;
     payload.user = newUser[0]._id;
@@ -104,7 +123,7 @@ const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
     //create a faculty (transaction -2)
     const newFaculty = await Faculty.create([payload], { session });
     if (!newFaculty.length) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create faculty');
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create faculty');
     }
     await session.commitTransaction();
     await session.endSession();
@@ -138,7 +157,7 @@ const createAdminIntoDB = async (password: string, payload: TFaculty) => {
 
     //create a admin
     if (!newUser.length) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create admin');
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create admin');
     }
     // set id , _id as user
     payload.id = newUser[0].id;
@@ -148,7 +167,7 @@ const createAdminIntoDB = async (password: string, payload: TFaculty) => {
     const newAdmin = await Admin.create([payload], { session });
 
     if (!newAdmin.length) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create admin');
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create admin');
     }
 
     await session.commitTransaction();
@@ -182,7 +201,7 @@ const changeStatus = async (id: string, payload: { status: string }) => {
     new: true,
   });
   if (!result) {
-    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
   }
   return result;
 };
