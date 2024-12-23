@@ -1,7 +1,8 @@
 import { StatusCodes } from 'http-status-codes';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import { JwtPayload } from 'jsonwebtoken';
 import config from '../config';
 import AppError from '../errors/AppError';
+import { verifyToken } from '../modules/Auth/auth.utils';
 import { TUserRole } from '../modules/user/user.interface';
 import User from '../modules/user/user.model';
 import tryCatchAsync from '../utils/catchAsync';
@@ -13,7 +14,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
       throw new AppError(StatusCodes.UNAUTHORIZED, 'you are not authorized');
     }
     //  check if the token is valid
-    const decoded = jwt.verify(
+    const decoded = verifyToken(
       token,
       config.jwt_secret as string,
     ) as JwtPayload;

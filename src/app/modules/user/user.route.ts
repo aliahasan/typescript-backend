@@ -6,27 +6,41 @@ import { createFacultyValidationSchema } from '../Faculty/faculty.validation';
 import { studentValidations } from '../student/student.validation';
 import { USER_ROLE } from './user.constant';
 import { UserControllers } from './user.controller';
+import { userValidation } from './user.validation';
 const router = express.Router();
 
 router.post(
   '/create-student',
   auth(USER_ROLE.admin),
   validateRequest(studentValidations.createStudentValidationSchema),
-  UserControllers.createStudent,
+  UserControllers.handleCreateStudent,
 );
 
 router.post(
   '/create-faculty',
   auth('admin'),
   validateRequest(createFacultyValidationSchema),
-  UserControllers.createFaculty,
+  UserControllers.handleCreateFaculty,
 );
 
 router.post(
   '/create-admin',
   //   auth('admin'),
   validateRequest(createAdminValidationSchema),
-  UserControllers.createAdmin,
+  UserControllers.handleCreateAdmin,
+);
+
+router.get(
+  '/me',
+  auth('student', 'faculty', 'admin'),
+  UserControllers.handleGetMe,
+);
+
+router.patch(
+  '/change-status/:id',
+  auth('admin'),
+  validateRequest(userValidation.changeStatusValidationSchema),
+  UserControllers.handleChangeStatus,
 );
 
 export const UserRoutes = router;
