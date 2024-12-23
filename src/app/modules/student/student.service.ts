@@ -89,6 +89,9 @@ const getSingleStudent = async (id: string) => {
         path: 'academicFaculty',
       },
     });
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Could not find any student');
+  }
   return result;
 };
 

@@ -20,7 +20,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
     const { role, userId, iat } = decoded;
     const user = await User.isUserExistByCustomId(userId);
     if (!user) {
-      throw new AppError(StatusCodes.NOT_FOUND, 'Invalid ID or password');
+      throw new AppError(StatusCodes.NOT_FOUND, 'User is not found');
     }
     if (user.status === 'blocked') {
       throw new AppError(StatusCodes.FORBIDDEN, 'User is blocked');
