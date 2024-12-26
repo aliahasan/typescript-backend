@@ -23,6 +23,8 @@ router.post(
 router.post(
   '/create-faculty',
   auth('admin'),
+  upload.single('file'),
+  parseFormdata,
   validateRequest(createFacultyValidationSchema),
   UserControllers.handleCreateFaculty,
 );
@@ -30,6 +32,8 @@ router.post(
 router.post(
   '/create-admin',
   //   auth('admin'),
+  upload.single('file'),
+  parseFormdata,
   validateRequest(createAdminValidationSchema),
   UserControllers.handleCreateAdmin,
 );
