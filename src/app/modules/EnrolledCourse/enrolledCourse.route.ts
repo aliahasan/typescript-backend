@@ -5,6 +5,7 @@ import { EnrollCourseControllers } from './enrolledCourse.controller';
 import { EnrolledCourseValidations } from './enrolledCourse.validation';
 
 const router = Router();
+
 router.post(
   '/create-enrolled-course',
   auth('student'),
@@ -13,9 +14,10 @@ router.post(
   ),
   EnrollCourseControllers.handleCreateEnrolledCourse,
 );
+
 router.patch(
   '/update-enrolled-course-marks',
-  auth('faculty'),
+  auth('faculty', 'admin', 'superAdmin'),
   validateRequest(
     EnrolledCourseValidations.updateEnrolledCourseMarksValidationZodSchema,
   ),
