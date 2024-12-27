@@ -66,6 +66,8 @@ const handleGetMe = tryCatchAsync(async (req, res) => {
     data: result,
   });
 });
+
+// change user status
 const handleChangeStatus = tryCatchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await UserServices.changeStatus(id, req.body);

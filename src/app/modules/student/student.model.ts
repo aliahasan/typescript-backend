@@ -131,11 +131,17 @@ const studentSchema = new Schema<TStudent, StudentModel>(
     },
     profileImage: {
       type: String,
+      default: '',
     },
     admissionSemester: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: 'AcademicSemester',
+    },
+    academicFaculty: {
+      type: Schema.Types.ObjectId,
+      ref: 'AcademicFaculty',
+      required: true,
     },
     academicDepartment: {
       type: Schema.Types.ObjectId,
@@ -161,7 +167,37 @@ studentSchema.virtual('fullName').get(function () {
   return `${this?.name?.firstName} ${this?.name?.middleName} ${this?.name?.lastName}`;
 });
 
-// ---------------------------------------------------------------
+// query middleware /hooks
+studentSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+studentSchema.pre('findOne', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+studentSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  next();
+});
+
+//---------------------------------------------------------
+// creating custom statics methods
+studentSchema.statics.isStudentExist = async function (id: string) {
+  const existingStudent = await this.findOne({ id });
+  return existingStudent;
+};
+
+export const Student = model<TStudent, StudentModel>('Student', studentSchema);
+
+// below we have created  the mongoose instance methods
+// studentSchema.methods.isStudentExist = async function (id: string) {
+//   const existingStudent = await Student.findOne({ id });
+//   return existingStudent;
+// };
+
 // pre save middleware /hooks
 // studentSchema.pre('save', async function (next) {
 //   const user = this;
@@ -179,33 +215,3 @@ studentSchema.virtual('fullName').get(function () {
 // });
 
 // ---------------------------------------------------------------
-
-// query middleware /hooks
-studentSchema.pre('find', function (next) {
-  this.find({ isDeleted: { $ne: true } });
-  next();
-});
-studentSchema.pre('findOne', function (next) {
-  this.find({ isDeleted: { $ne: true } });
-  next();
-});
-
-studentSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
-  next();
-});
-//---------------------------------------------------------
-// creating custom statics methods
-studentSchema.statics.isStudentExist = async function (id: string) {
-  const existingStudent = await this.findOne({ id });
-  return existingStudent;
-};
-
-// below we have created  the mongoose instance methods
-
-// studentSchema.methods.isStudentExist = async function (id: string) {
-//   const existingStudent = await Student.findOne({ id });
-//   return existingStudent;
-// };
-// creating a model
-export const Student = model<TStudent, StudentModel>('Student', studentSchema);

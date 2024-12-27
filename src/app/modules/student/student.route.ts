@@ -5,20 +5,24 @@ import { StudentController } from './student.controller';
 import { updateStudentValidationSchema } from './student.validation';
 const router = express.Router();
 
-// will call controller function
-router.get('/', StudentController.getAllStudents);
+router.get('/', auth('admin', 'superAdmin'), StudentController.getAllStudents);
 
 router.get(
   '/:id',
-  auth('student', 'faculty', 'admin'),
+  auth('student', 'faculty', 'admin', 'superAdmin'),
   StudentController.getSingleStudentById,
 );
 
 router.patch(
   '/:id',
+  auth('admin', 'superAdmin'),
   validateRequest(updateStudentValidationSchema),
   StudentController.updateStudent,
 );
 
-router.delete('/:id', StudentController.deleteStudent);
+router.delete(
+  '/:id',
+  auth('superAdmin', 'admin'),
+  StudentController.deleteStudent,
+);
 export const StudentRoutes = router;

@@ -26,9 +26,3 @@ export interface UserModel extends Model<TUser> {
 }
 
 export type TUserRole = keyof typeof USER_ROLE;
-
-// export type NewUser = {
-//   role: string;
-//   password: string;
-//   id: string;
-// };

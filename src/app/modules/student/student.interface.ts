@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Model, Types } from 'mongoose';
 
 export type TUserName = {
@@ -21,6 +22,7 @@ export type TLocalGuardian = {
   contactNo: string;
   address: string;
 };
+
 export type TStudent = {
   id: string;
   user: Types.ObjectId;
@@ -38,20 +40,10 @@ export type TStudent = {
   localGuardians: TLocalGuardian;
   profileImage: string;
   admissionSemester: Types.ObjectId;
+  academicFaculty: Types.ObjectId;
   academicDepartment: Types.ObjectId;
   isDeleted: boolean;
 };
-
-// export type StudentMethods = {
-//   isStudentExist(id: string): Promise<TStudent | null>;
-// };
-
-// export type StudentModel = Model<
-//   TStudent,
-//   //   {},
-//   Record<string, unknown>,
-//   StudentMethods
-// >;
 
 export interface StudentModel extends Model<TStudent> {
   isStudentExist(id: string): Promise<TStudent | null>;
