@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
-import { default as tryCatchAsync } from '../../utils/catchAsync';
+import tryCatchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { OfferedCourseServices } from './offeredCourse.services';
 
@@ -17,6 +17,21 @@ const createOfferedCourse = tryCatchAsync(async (req, res) => {
 
 const getAllOfferedCourses = tryCatchAsync(async (req, res) => {
   const result = await OfferedCourseServices.getAllOfferedCoursesFromDB(
+    req.query,
+  );
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'OfferedCourses retrieved successfully !',
+    data: result,
+  });
+});
+
+// get my offered courses
+const handleGetMyOfferedCourses = tryCatchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const result = await OfferedCourseServices.getMyOfferedCourses(
+    userId,
     req.query,
   );
   sendResponse(res, {
@@ -67,6 +82,7 @@ export const OfferedCourseControllers = {
   createOfferedCourse,
   getAllOfferedCourses,
   getSingleOfferedCourses,
+  handleGetMyOfferedCourses,
   updateOfferedCourse,
   deleteOfferedCourseFromDB,
 };
