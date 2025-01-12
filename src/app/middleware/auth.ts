@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { StatusCodes } from 'http-status-codes';
 import { JwtPayload } from 'jsonwebtoken';
 import config from '../config';
@@ -14,10 +16,13 @@ const auth = (...requiredRoles: TUserRole[]) => {
       throw new AppError(StatusCodes.UNAUTHORIZED, 'you are not authorized');
     }
     //  check if the token is valid
-    const decoded = verifyToken(
-      token,
-      config.jwt_secret as string,
-    ) as JwtPayload;
+    let decoded;
+    try {
+      decoded = verifyToken(token, config.jwt_secret as string) as JwtPayload;
+    } catch (error) {
+      throw new AppError(StatusCodes.UNAUTHORIZED, 'Unauthorized');
+    }
+
     const { role, userId, iat } = decoded;
     const user = await User.isUserExistByCustomId(userId);
     if (!user) {
