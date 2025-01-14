@@ -10,7 +10,7 @@ const handleNotFoundRoute = async (
 ) => {
   res.status(httpStatus.NOT_FOUND).json({
     success: false,
-    message: `Route ${req.originalUrl} not found`,
+    message: `Api not found!`,
   });
 };
 
