@@ -8,9 +8,10 @@ const loginUser = tryCatchAsync(async (req, res) => {
   const result = await AuthServices.loginUser(req.body);
   const { refreshToken, accessToken, needPasswordChange } = result;
   res.cookie('refreshToken', refreshToken, {
-    secure: config.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'none',
+    secure: config.NODE_ENV === 'production',
+    //  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    sameSite: true,
     maxAge: 1000 * 60 * 60 * 24 * 365,
   });
   sendResponse(res, {
@@ -31,7 +32,6 @@ const changePassword = tryCatchAsync(async (req, res) => {
     success: true,
     message: 'password is updated successfully',
     data: result,
-    //  data: null,
   });
 });
 
