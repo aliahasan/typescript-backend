@@ -23,6 +23,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // not found route
-app.use(handleNotFoundRoute);
 app.use(globalErrorHandler);
+app.use(handleNotFoundRoute);
 export default app;
