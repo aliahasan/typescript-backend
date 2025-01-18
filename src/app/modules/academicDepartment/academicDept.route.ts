@@ -6,7 +6,7 @@ import { academicDepartmentValidation } from './academicDept.validation';
 const router = express.Router();
 
 router.post(
-  '/',
+  '/create-academic-department',
   auth('admin', 'superAdmin'),
   validateRequest(
     academicDepartmentValidation.academicDepartmentValidationSchema,
