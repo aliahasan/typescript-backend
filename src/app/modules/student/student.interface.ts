@@ -19,7 +19,7 @@ export type TGuardian = {
 export type TLocalGuardian = {
   name: string;
   occupation: string;
-  contactNo: string;
+  contactNumber: string;
   address: string;
 };
 
