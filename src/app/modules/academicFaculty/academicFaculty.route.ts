@@ -6,7 +6,7 @@ import { academicFacultyValidation } from './academicFacultyValidation';
 const router = express.Router();
 
 router.post(
-  '/',
+  '/create-academic-faculty',
   auth('superAdmin', 'admin'),
   validateRequest(academicFacultyValidation.academicFacultyValidationSchema),
   AcademicFacultyControllers.createAcademicFaculty,
