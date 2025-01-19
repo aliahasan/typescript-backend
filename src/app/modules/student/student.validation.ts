@@ -27,7 +27,7 @@ const guardianSchema = z.object({
 const localGuardianSchema = z.object({
   name: z.string(),
   occupation: z.string(),
-  contactNo: z.string(),
+  contactNumber: z.string(),
   address: z.string(),
 });
 

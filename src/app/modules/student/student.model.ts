@@ -58,7 +58,7 @@ const localGuardianSchema = new Schema<TLocalGuardian>({
     type: String,
     required: true,
   },
-  contactNo: {
+  contactNumber: {
     type: String,
     required: true,
   },

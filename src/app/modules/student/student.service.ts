@@ -8,7 +8,28 @@ import { TStudent } from './student.interface';
 import { Student } from './student.model';
 import { studentSearchableFields } from './students.constant';
 
+// const getAllStudents = async (query: Record<string, unknown>) => {
+//   const studentsQuery = new QueryBuilder(
+//     Student.find()
+//       .populate('user')
+//       .populate('admissionSemester')
+//       .populate('academicDepartment academicFaculty'),
+//     query,
+//   )
+//     .search(studentSearchableFields)
+//     .filter()
+//     .sort()
+//     .paginate()
+//     .fields();
+//   const meta = await studentsQuery.countTotal();
+//   const result = await studentsQuery.queryModel.exec();
+//   return {
+//     meta,
+//     result,
+//   };
+// };
 const getAllStudents = async (query: Record<string, unknown>) => {
+  // Instantiate QueryBuilder with the Student query and incoming query parameters
   const studentsQuery = new QueryBuilder(
     Student.find()
       .populate('user')
@@ -21,8 +42,13 @@ const getAllStudents = async (query: Record<string, unknown>) => {
     .sort()
     .paginate()
     .fields();
-  const result = await studentsQuery.queryModel;
+
+  // Fetch metadata for pagination
   const meta = await studentsQuery.countTotal();
+
+  // Execute the query to fetch the result
+  const result = await studentsQuery.queryModel.exec(); // Add `.exec()` to execute the query
+
   return {
     meta,
     result,
