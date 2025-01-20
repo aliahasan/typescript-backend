@@ -14,6 +14,22 @@ const createSemesterRegistrationIntoDB = async (
 ) => {
   const academicSemester = payload?.academicSemester;
 
+  //   check if there any registered semester that is already "UPCOMING" | "ONGOING"
+  const isThereAnyUpcomingOrOngoingSemester =
+    await SemesterRegistration.findOne({
+      $or: [
+        { status: RegistrationStatus.UPCOMING },
+        { status: RegistrationStatus.ONGOING },
+      ],
+    });
+
+  if (isThereAnyUpcomingOrOngoingSemester) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      `There is already an ${isThereAnyUpcomingOrOngoingSemester.status} semester registered!`,
+    );
+  }
+
   //   check if the semester exists
   const isAcademicSemesterExist =
     await AcademicSemester.findById(academicSemester);
@@ -29,21 +45,9 @@ const createSemesterRegistrationIntoDB = async (
     academicSemester,
   });
   if (isSemesterRegistrationExists) {
-    throw new AppError(StatusCodes.CONFLICT, 'This Semester already exists');
-  }
-
-  //   check if there any registered semester that is already "UPCOMING" | "ONGOING"
-  const isThereAnyUpcomingOrOngoingSemester =
-    await SemesterRegistration.findOne({
-      $or: [
-        { status: RegistrationStatus.UPCOMING },
-        { status: RegistrationStatus.ONGOING },
-      ], //{ status: 'ONGOING' }
-    });
-  if (isThereAnyUpcomingOrOngoingSemester) {
     throw new AppError(
       StatusCodes.CONFLICT,
-      `There is already an ${isThereAnyUpcomingOrOngoingSemester.status} semester registered!`,
+      'This Semester already registered',
     );
   }
 
