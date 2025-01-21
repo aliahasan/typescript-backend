@@ -1,10 +1,11 @@
 import { TAcademicSemester } from '../academicSemester/academicSemester.interface';
 import User from './user.model';
 
-const findLastStudentId = async () => {
+const findLastStudentId = async (payload: string) => {
+  //here payload is previous student year and code
   const lastStudent = await User.findOne(
     {
-      role: 'student',
+      $and: [{ role: 'student' }, { id: { $regex: payload, options: 'i' } }],
     },
     {
       id: 1,
@@ -18,11 +19,14 @@ const findLastStudentId = async () => {
 
 //  create id dynamically
 export const generatedStudentId = async (payload: TAcademicSemester) => {
-  let currentId = (0).toString(); //0000 by default
-  const lastStudentId = await findLastStudentId();
-  //2030 01 0001
+  let currentId = (0).toString();
+  const query = `${payload?.year}${payload?.code}`;
+
+  const lastStudentId = await findLastStudentId(query);
+
   const lastStudentSemesterCode = lastStudentId?.substring(4, 6);
   const lastStudentYear = lastStudentId?.substring(0, 4);
+
   const currentSemesterCode = payload.code;
   const currentYear = payload.year;
 
@@ -33,7 +37,9 @@ export const generatedStudentId = async (payload: TAcademicSemester) => {
   ) {
     currentId = lastStudentId.substring(6);
   }
+
   let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
+
   incrementId = `${payload.year}${payload.code}${incrementId}`;
   return incrementId;
 };
@@ -52,28 +58,6 @@ export const findLastFacultyId = async () => {
     .lean();
   return lastFaculty?.id ? lastFaculty?.id : null;
 };
-
-// export const findLastFacultyId = async () => {
-//   const lastFaculty = await User.findOne(
-//     { role: 'faculty' }, // শুধুমাত্র 'faculty' রোল ফিল্টার করুন
-//     { id: 1, _id: 0 }, // শুধুমাত্র 'id' ফিল্ড নিন
-//   )
-//     .sort({ createdAt: -1 }) // সর্বশেষ ডেট অনুযায়ী সাজান
-//     .lean(); // শুধুমাত্র প্লেইন জাভাস্ক্রিপ্ট অবজেক্ট রিটার্ন করুন
-
-//   return lastFaculty?.id || null; // যদি আইডি না থাকে, তাহলে null রিটার্ন করুন
-// };
-
-// export const generateFacultyId = async () => {
-//   let currentId = (0).toString();
-//   const lastFacultyId = await findLastFacultyId();
-//   if (lastFacultyId) {
-//     currentId = lastFacultyId.substring(2);
-//   }
-//   let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
-//   incrementId = `F-${incrementId}`;
-//   return incrementId;
-// };
 
 export const generateFacultyId = async () => {
   const lastFacultyId = await findLastFacultyId();
@@ -117,3 +101,25 @@ export const generateAdminId = async () => {
   incrementId = `A-${incrementId}`;
   return incrementId;
 };
+
+// export const findLastFacultyId = async () => {
+//   const lastFaculty = await User.findOne(
+//     { role: 'faculty' },
+//     { id: 1, _id: 0 },
+//   )
+//     .sort({ createdAt: -1 })
+//     .lean();
+
+//   return lastFaculty?.id || null;
+// };
+
+// export const generateFacultyId = async () => {
+//   let currentId = (0).toString();
+//   const lastFacultyId = await findLastFacultyId();
+//   if (lastFacultyId) {
+//     currentId = lastFacultyId.substring(2);
+//   }
+//   let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
+//   incrementId = `F-${incrementId}`;
+//   return incrementId;
+// };
