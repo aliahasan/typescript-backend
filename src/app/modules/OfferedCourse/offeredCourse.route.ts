@@ -8,6 +8,11 @@ const router = express.Router();
 
 // Static routes first
 router.get(
+  '/',
+  auth('superAdmin', 'admin', 'faculty'),
+  OfferedCourseControllers.getAllOfferedCourses,
+);
+router.get(
   '/my-offered-courses',
   auth('student'),
   OfferedCourseControllers.handleGetMyOfferedCourses,
@@ -18,12 +23,6 @@ router.post(
   auth('superAdmin', 'admin'),
   validateRequest(OfferedCourseValidations.createOfferedCourseValidationSchema),
   OfferedCourseControllers.createOfferedCourse,
-);
-
-router.get(
-  '/',
-  auth('superAdmin', 'admin', 'faculty'),
-  OfferedCourseControllers.getAllOfferedCourses,
 );
 
 // Dynamic routes after static routes

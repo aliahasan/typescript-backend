@@ -110,8 +110,9 @@ const getAllOfferedCoursesFromDB = async (query: Record<string, unknown>) => {
     .sort()
     .paginate()
     .fields();
-  const meta = await offeredCourseQuery.countTotal();
   const result = await offeredCourseQuery.queryModel;
+  const meta = await offeredCourseQuery.countTotal();
+
   return {
     meta,
     result,
@@ -130,7 +131,7 @@ const getMyOfferedCourses = async (
 
   const student = await Student.findOne({ id: userId });
   if (!student) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Student not found');
+    throw new AppError(StatusCodes.NOT_FOUND, 'Student is not found');
   }
   //  find current ongoing semester
   const currentOngoingRegistrationSemester = await SemesterRegistration.findOne(
@@ -141,7 +142,7 @@ const getMyOfferedCourses = async (
   if (!currentOngoingRegistrationSemester) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
-      'Current ongoing semester not found',
+      'There is no ongoing semester registration!',
     );
   }
   const aggregationQuery = [
@@ -157,11 +158,11 @@ const getMyOfferedCourses = async (
         from: 'courses',
         localField: 'course',
         foreignField: '_id',
-        as: 'courses',
+        as: 'course',
       },
     },
     {
-      $unwind: '$courses',
+      $unwind: '$course',
     },
     {
       $lookup: {
@@ -236,10 +237,10 @@ const getMyOfferedCourses = async (
       $addFields: {
         isPreRequisitesFulFilled: {
           $or: [
-            { $eq: ['$courses.prerequisiteCourses', []] },
+            { $eq: ['$course.prerequisiteCourses', []] },
             {
               $setIsSubset: [
-                '$courses.prerequisiteCourses.course',
+                '$course.prerequisiteCourses.course',
                 '$completedCourseIds',
               ],
             },
@@ -247,7 +248,7 @@ const getMyOfferedCourses = async (
         },
         isAlreadyEnrolled: {
           $in: [
-            '$courses._id',
+            '$course._id',
             {
               $map: {
                 input: '$enrolledCourses',
@@ -350,7 +351,7 @@ const updateOfferedCourseIntoDB = async (
   const result = await OfferedCourse.findByIdAndUpdate(id, payload, {
     new: true,
   });
-  //   return result;
+
   return result;
 };
 
