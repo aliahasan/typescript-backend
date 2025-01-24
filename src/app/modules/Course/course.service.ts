@@ -144,6 +144,7 @@ const assignFacultiesWithCourseIntoDB = async (
   return result;
 };
 
+// get faculty with associated courses
 const getFacultiesWithCourseById = async (courseId: string) => {
   const result = await CourseFaculty.findById(courseId).populate('faculties');
   return result;
